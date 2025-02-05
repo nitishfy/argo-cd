@@ -320,8 +320,10 @@ func NewClientOrDie(opts *apiclient.ClientOptions, c *cobra.Command) apiclient.C
 
 	ctxStr := initialize.RetrieveContextIfChanged(c.Flag("context"))
 	// If we're in core mode, start the API server on the fly and configure the client `opts` to use it.
-	// If we're not in core mode, this function call will do nothing.
-	err := MaybeStartLocalServer(ctx, opts, ctxStr, nil, nil, cache.RedisCompressionNone, nil)
+	// If we're not in core mode, this function call will do nothing. The Redis Compression has been set
+	// to GZip because it is the default compression type.
+	// https://github.com/argoproj/argo-cd/issues/13458
+	err := MaybeStartLocalServer(ctx, opts, ctxStr, nil, nil, cache.RedisCompressionGZip, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
