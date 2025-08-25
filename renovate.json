@@ -8,5 +8,5 @@
     "github>argoproj/argo-cd//renovate-presets/devtool.json5",
     "github>argoproj/argo-cd//renovate-presets/docs.json5"
   ],
-  "allowedCommands": ["echo 'Hello world'","make mockgen"]
+  "allowedCommands": ["go mod tidy","ls","echo 'Hello world'","make mockgen"]
 }
