@@ -1,7 +1,6 @@
 package applicationset
 
 import (
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
 	"testing"
 
@@ -15,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	k8scache "k8s.io/client-go/tools/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	cr_fake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/argoproj/argo-cd/v3/common"
@@ -117,7 +117,7 @@ func newTestAppSetServerWithEnforcerConfigure(t *testing.T, f func(*rbac.Enforce
 
 	objects = append(objects, defaultProj, myProj)
 
-	runtimeObjects := make([]runtime.Object, len(objects), len(objects))
+	runtimeObjects := make([]runtime.Object, len(objects))
 	for i := range objects {
 		runtimeObjects[i] = objects[i]
 	}
