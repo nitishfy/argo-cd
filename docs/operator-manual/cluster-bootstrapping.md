@@ -107,10 +107,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
----
-{{ end -}}
----
-{{- end }}
 ```
 In the above pattern:
 
