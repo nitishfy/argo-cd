@@ -23,7 +23,7 @@ concurrency:
 jobs:
   check-linked-issue:
     permissions:
-      contents: read # to check out the policy script from the base branch
+      contents: write # TEMP: test whether convertPullRequestToDraft needs it
       issues: read # to read the labels of linked issues
       pull-requests: write # to label, comment on and convert the PR to a draft
     name: Check linked issue
