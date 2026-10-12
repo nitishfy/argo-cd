@@ -7,7 +7,7 @@ on:
   pull_request_target:
     types: [opened, reopened, edited, synchronize, ready_for_review, labeled, unlabeled]
     branches:
-      - main
+      - master
 
 permissions: {}
 
@@ -23,7 +23,11 @@ concurrency:
 jobs:
   check-linked-issue:
     permissions:
-      contents: write # TEMP: test whether convertPullRequestToDraft needs it
+      # convertPullRequestToDraft is rejected with "Resource not accessible by
+      # integration" unless the token can also write contents. The job only
+      # checks out the base branch without persisting credentials, and never
+      # runs code from the PR.
+      contents: write # to convert the PR to a draft
       issues: read # to read the labels of linked issues
       pull-requests: write # to label, comment on and convert the PR to a draft
     name: Check linked issue

@@ -23,7 +23,7 @@ const NO_ISSUE_LABEL = 'policy/no-linked-issue';
 const NOT_ACCEPTED_LABEL = 'policy/issue-not-accepted';
 const POLICY_LABELS = [NO_ISSUE_LABEL, NOT_ACCEPTED_LABEL];
 // PRs authored by users with write access to the repository are not checked.
-const MAINTAINER_ASSOCIATIONS = ['MEMBER', 'COLLABORATOR'];
+const MAINTAINER_ASSOCIATIONS = ['OWNER', 'MEMBER', 'COLLABORATOR'];
 const DOCS_PATTERNS = ['docs/**', '*.md', 'mkdocs.yml'];
 // Upper bound on the number of referenced issues that are looked up.
 const MAX_LINKED_ISSUES = 10;
@@ -144,10 +144,13 @@ function evaluate({ codeLines, issues }) {
   return { pass: true, reason: `links ${issues.map(i => `#${i.number}`).join(', ')}` };
 }
 
-function failureComment(result, { converted, owner, repo }) {
-  const state = converted
-    ? 'This pull request has been converted to a draft'
-    : 'This pull request is a draft and should stay one';
+function failureComment(result, { converted, draft, owner, repo }) {
+  let state = 'This pull request should be a draft';
+  if (converted) {
+    state = 'This pull request has been converted to a draft';
+  } else if (draft) {
+    state = 'This pull request is a draft and should stay one';
+  }
   const issueUrl = `https://github.com/${owner}/${repo}/issues/new/choose`;
   let why;
   let steps;
@@ -292,14 +295,24 @@ async function run({ github, context, core, gitattributes }) {
 
   if (!result.pass) {
     await setPolicyLabel({ github, core, owner, repo, pr, label: result.label });
+    let convertError;
     if (!pr.draft) {
-      await github.graphql(
-        `mutation($id: ID!) { convertPullRequestToDraft(input: { pullRequestId: $id }) { clientMutationId } }`,
-        { id: pr.node_id },
-      );
+      try {
+        await github.graphql(
+          `mutation($id: ID!) { convertPullRequestToDraft(input: { pullRequestId: $id }) { clientMutationId } }`,
+          { id: pr.node_id },
+        );
+      } catch (e) {
+        convertError = e;
+      }
     }
-    const converted = !pr.draft || convertedEarlier;
-    await upsertComment({ github, owner, repo, pr, existing, body: failureComment(result, { converted, owner, repo }) });
+    const converted = (!pr.draft && !convertError) || convertedEarlier;
+    const body = failureComment(result, { converted, draft: pr.draft, owner, repo });
+    await upsertComment({ github, owner, repo, pr, existing, body });
+    if (convertError) {
+      // The author still gets the comment, but the failure must be visible to maintainers.
+      core.setFailed(`Could not convert #${pr.number} to a draft: ${convertError.message}`);
+    }
     return;
   }
 
