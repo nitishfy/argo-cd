@@ -23,7 +23,7 @@ const NO_ISSUE_LABEL = 'policy/no-linked-issue';
 const NOT_ACCEPTED_LABEL = 'policy/issue-not-accepted';
 const POLICY_LABELS = [NO_ISSUE_LABEL, NOT_ACCEPTED_LABEL];
 // PRs authored by users with write access to the repository are not checked.
-const MAINTAINER_ASSOCIATIONS = ['OWNER', 'MEMBER', 'COLLABORATOR'];
+const MAINTAINER_ASSOCIATIONS = ['MEMBER', 'COLLABORATOR'];
 const DOCS_PATTERNS = ['docs/**', '*.md', 'mkdocs.yml'];
 // Upper bound on the number of referenced issues that are looked up.
 const MAX_LINKED_ISSUES = 10;
