@@ -1,0 +1,84 @@
+You can install Helm charts through the UI, or in the declarative GitOps way.
+Helm is only used to inflate charts with helm template. The lifecycle of the application is handled by Argo CD instead of Helm. Here is an example:
+
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sealed-secrets
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: sealed-secrets
+    repoURL: https://bitnami.github.io/sealed-secrets
+    targetRevision: 1.16.1
+    helm:
+      releaseName: sealed-secrets
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kubeseal
+Another example using a public OCI helm chart:
+
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx
+spec:
+  project: default
+  source:
+    chart: nginx
+    repoURL: registry-1.docker.io/bitnamicharts  # note: the oci:// syntax is not included.
+    targetRevision: 15.9.0
+  destination:
+    name: "in-cluster"
+    namespace: nginx
+Note
+
+When using Helm there are multiple ways to provide values
+
+Order of precedence is parameters > valuesObject > values > valueFiles > helm repository values.yaml. Value precedence has a more detailed example.
+
+The Declarative Setup section on Helm has more info about how to configure private Helm repositories and private OCI registries.
+
+Values Files¶
+Helm has the ability to use a different, or even multiple "values.yaml" files to derive its parameters from. Alternate or multiple values file(s), can be specified using the --values flag. The flag can be repeated to support multiple values files:
+
+
+argocd app set helm-guestbook --values values-production.yaml
+Note
+
+Before v2.6 of Argo CD, Values files must be in the same git repository as the Helm chart. The files can be in a different location in which case it can be accessed using a relative path relative to the root directory of the Helm chart. As of v2.6, values files can be sourced from a separate repository than the Helm chart by taking advantage of multiple sources for Applications.
+
+In the declarative syntax:
+
+
+source:
+  helm:
+    valueFiles:
+    - values-production.yaml
+If Helm is passed a non-existing value file during template expansion, it will error out. Missing values files can be ignored (meaning, not passed to Helm) using the --ignore-missing-value-files. This can be particularly helpful to implement a default/override pattern with Application Sets.
+
+In the declarative syntax:
+
+
+source:
+  helm:
+    valueFiles:
+    - values-common.yaml
+    - values-optional-override.yaml
+    ignoreMissingValueFiles: true
+Glob Patterns in Value Files¶
+Glob patterns can be used in valueFiles entries to match multiple files at once. This is useful when the set of environment-specific override files is not known in advance, or when you want to pick up new files automatically without updating the Application spec.
+
+
+# Single quotes prevent the shell from expanding the glob before Argo CD receives it
+argocd app set helm-guestbook --values 'envs/*.yaml'
+In the declarative syntax:
+
+
+source:
+  helm:
+    valueFiles:
+    - envs/*.yaml
