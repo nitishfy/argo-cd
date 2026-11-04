@@ -122,6 +122,7 @@ func NewCommand() *cobra.Command {
 			cli.SetGLogLevel(glogLevel)
 
 			// Recover from panic and log the error using the configured logger instead of the default.
+			// Demo comment which is a tiny change
 			defer func() {
 				if r := recover(); r != nil {
 					log.WithField("trace", string(debug.Stack())).Fatal("Recovered from panic: ", r)
